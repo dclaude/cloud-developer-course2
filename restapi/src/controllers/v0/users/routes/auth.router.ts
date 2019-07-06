@@ -19,20 +19,21 @@ async function comparePasswords(plainTextPassword: string, hash: string): Promis
 }
 
 function generateJWT(user: User): string {
-  return jwt.sign(user.short(), config.jwt_secret);
+  return jwt.sign(user.short(), config.jwtSecret);
 }
 
-export function requireAuth(req: Request, res: Response, next: NextFunction) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function requireAuth(req: Request, res: Response, next: NextFunction): any {
   if (!req.headers || !req.headers.authorization) {
     return res.status(401).send({ message: 'No authorization headers.' });
   }
   //
-  const token_bearer = req.headers.authorization.split(' ');
-  if (token_bearer.length != 2) {
+  const tokenBearer = req.headers.authorization.split(' ');
+  if (tokenBearer.length != 2) {
     return res.status(401).send({ message: 'Malformed token.' });
   }
-  const token = token_bearer[1];
-  return jwt.verify(token, config.jwt_secret, (err, decoded) => {
+  const token = tokenBearer[1];
+  return jwt.verify(token, config.jwtSecret, (err /*, decoded */) => {
     if (err) {
       return res.status(500).send({ auth: false, message: 'Failed to authenticate.' });
     }
@@ -97,11 +98,12 @@ router.post('/', async (req: Request, res: Response) => {
     return res.status(422).send({ auth: false, message: 'User may already exist' });
   }
 
-  const password_hash = await generatePassword(plainTextPassword);
+  const passwordHash = await generatePassword(plainTextPassword);
 
   const newUser = await new User({
     email: email,
-    password_hash: password_hash
+    // eslint-disable-next-line @typescript-eslint/camelcase
+    password_hash: passwordHash
   });
 
   let savedUser;

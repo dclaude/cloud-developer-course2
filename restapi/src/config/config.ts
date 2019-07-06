@@ -8,8 +8,8 @@ export const config = {
   database: process.env.POSTGRESS_DATABASE,
   host: process.env.POSTGRESS_HOST,
   dialect: 'postgres',
-  aws_region: process.env.AWS_REGION,
-  aws_profile: process.env.AWS_PROFILE,
-  aws_media_bucket: process.env.AWS_MEDIA_BUCKET,
-  jwt_secret: process.env.JWT_SECRET
+  awsRegion: process.env.AWS_REGION,
+  awsProfile: process.env.AWS_PROFILE,
+  awsMediaBucket: process.env.AWS_MEDIA_BUCKET,
+  jwtSecret: process.env.JWT_SECRET
 };
