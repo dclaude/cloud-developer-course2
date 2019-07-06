@@ -1,6 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-// import { filterImageFromURL, deleteLocalFiles } from './util/util';
+import { filterImageFromURL, deleteLocalFiles } from './util/util';
+
+let requestId = 0;
 
 (async () => {
   // Init the Express application
@@ -25,6 +27,27 @@ import bodyParser from 'body-parser';
   //    image_url: URL of a publicly accessible image
   // RETURNS
   //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
+  app.get('/filteredimage', async (req, res) => {
+    const {
+      query: { image_url: imageUrl }
+    } = req;
+    if (!imageUrl) {
+      return res.status(400).send(`image_url query parameter is required`);
+    }
+    const id = ++requestId;
+    try {
+      console.log(`GET /filteredimage id[${id}] filterImageFromURL() start image_url=${imageUrl}`);
+      const filteredPath = await filterImageFromURL(decodeURIComponent(imageUrl));
+      console.log(`GET /filteredimage id[${id}] filterImageFromURL() stop filteredpath[${filteredPath}]`);
+      res.status(200).sendFile(filteredPath, {}, () => {
+        console.log(`GET /filteredimage id[${id}] deleteLocalFiles() filteredpath[${filteredPath}]`);
+        deleteLocalFiles([filteredPath]);
+      });
+    } catch (error) {
+      console.log(`GET /filteredimage id[${id}] error[${error}]`);
+      return res.status(500).send(`${error}`);
+    }
+  });
 
   /**************************************************************************** */
 
