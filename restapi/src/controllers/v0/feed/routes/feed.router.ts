@@ -64,7 +64,7 @@ router.get('/signed-url/:fileName', requireAuth, async (req: Request, res: Respo
   res.status(201).send({ url: url });
 });
 
-function createFilteredImage(id: number, fileName: string): Promise<string> {
+function createFilteredImage(id: number, fileName: string, authorization: string): Promise<string> {
   const getSignedUrl = AWS.getGetSignedUrl(fileName);
   const { imageFilterApi } = config;
   const tmpDir = './tmp';
@@ -78,7 +78,10 @@ function createFilteredImage(id: number, fileName: string): Promise<string> {
     const url = `${imageFilterApi}/filteredimage?image_url=${encodedUrl}`;
     console.log(`createFilteredImage() id[${id}] start getSignedUrl[${getSignedUrl}] url[${url}]`);
     http
-      .get(url, res => {
+      .get(url, { headers: { authorization } }, res => {
+        if (res.statusCode !== 200) {
+          reject(res.statusMessage);
+        }
         res.on('data', chunk => filteredImageStream.write(chunk));
         res.on('end', () => {
           console.log(`createFilteredImage() id[${id}] stop file[${filteredImageFile}]`);
@@ -115,8 +118,11 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   // the code below works because the frontend first upload the picture to S3 before calling this end-point
   const id = ++postRequestId;
   console.log(`POST /feed id[${id}] fileName[${fileName}]`);
+  const {
+    headers: { authorization }
+  } = req;
   try {
-    const filteredImageFile = await createFilteredImage(id, fileName);
+    const filteredImageFile = await createFilteredImage(id, fileName, authorization);
     await AWS.upload(fileName, fs.createReadStream(filteredImageFile));
     fs.unlinkSync(filteredImageFile);
   } catch (error) {

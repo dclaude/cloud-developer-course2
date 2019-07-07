@@ -35,6 +35,8 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
+    "@types/dotenv-flow": "^0.2.1",
+    "dotenv-flow": "^3.0.0-rc.1",
     "express": "^4.17.0",
     "jimp": "^0.6.4"
   },

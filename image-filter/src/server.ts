@@ -1,6 +1,32 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import { filterImageFromURL, deleteLocalFiles } from './util/util';
+import { NextFunction } from 'connect';
+import { config } from './config/config';
+import http from 'http';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function verifyAuth(req: Request, res: Response, next: NextFunction): any {
+  if (!req.headers || !req.headers.authorization) {
+    return res.status(401).send({ message: 'No authorization headers.' });
+  }
+  const {
+    headers: { authorization }
+  } = req;
+  const { restApi } = config;
+  http
+    .get(`${restApi}/users/auth/verification`, { headers: { authorization } }, response => {
+      const { statusCode } = response;
+      console.log(`verifyAuth() statusCode[${statusCode}]`);
+      if (statusCode !== 200) {
+        return res.status(401).send('Not authorized');
+      }
+      return next();
+    })
+    .on('error', error => {
+      return res.status(500).send(`${error}`);
+    });
+}
 
 let requestId = 0;
 
@@ -27,7 +53,7 @@ let requestId = 0;
   //    image_url: URL of a publicly accessible image
   // RETURNS
   //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
-  app.get('/filteredimage', async (req, res) => {
+  app.get('/filteredimage', verifyAuth, async (req, res) => {
     const {
       query: { image_url: imageUrl } // no need to call decodeURIComponent()
     } = req;
