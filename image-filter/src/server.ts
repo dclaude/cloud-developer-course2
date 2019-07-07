@@ -29,15 +29,15 @@ let requestId = 0;
   //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
   app.get('/filteredimage', async (req, res) => {
     const {
-      query: { image_url: imageUrl }
+      query: { image_url: imageUrl } // no need to call decodeURIComponent()
     } = req;
     if (!imageUrl) {
       return res.status(400).send(`image_url query parameter is required`);
     }
     const id = ++requestId;
     try {
-      console.log(`GET /filteredimage id[${id}] filterImageFromURL() start image_url=${imageUrl}`);
-      const filteredPath = await filterImageFromURL(decodeURIComponent(imageUrl));
+      console.log(`GET /filteredimage id[${id}] filterImageFromURL() start imageUrl[${imageUrl}]`);
+      const filteredPath = await filterImageFromURL(imageUrl);
       console.log(`GET /filteredimage id[${id}] filterImageFromURL() stop filteredpath[${filteredPath}]`);
       res.status(200).sendFile(filteredPath, {}, () => {
         console.log(`GET /filteredimage id[${id}] deleteLocalFiles() filteredpath[${filteredPath}]`);

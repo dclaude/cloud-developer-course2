@@ -1,5 +1,6 @@
 import AWS = require('aws-sdk');
 import { config } from './config/config';
+import fs from 'fs';
 
 //Configure AWS
 if (config.awsProfile !== 'DEPLOYED') {
@@ -45,4 +46,23 @@ export function getPutSignedUrl(key: string): string {
     Expires: signedUrlExpireSeconds
   });
   return url;
+}
+
+export function upload(key: string, stream: fs.ReadStream): Promise<AWS.S3.ManagedUpload.SendData> {
+  const params: AWS.S3.PutObjectRequest = {
+    Bucket: config.awsMediaBucket,
+    Key: key,
+    Body: stream
+  };
+  return new Promise((resolve, reject) => {
+    console.log(`AWS upload() key[${key}] start`);
+    s3.upload(params, (error, data) => {
+      if (error) {
+        console.log(`AWS upload() key[${key}] error[${error}]`);
+        reject(error);
+      }
+      console.log(`AWS upload() key[${key}] stop data[${JSON.stringify(data)}]`);
+      resolve(data);
+    });
+  });
 }

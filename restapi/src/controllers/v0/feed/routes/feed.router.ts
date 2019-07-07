@@ -2,6 +2,9 @@ import { Router, Request, Response } from 'express';
 import { FeedItem } from '../models/FeedItem';
 import { requireAuth } from '../../users/routes/auth.router';
 import * as AWS from '../../../../aws';
+import { config } from '../../../../config/config';
+import http from 'http';
+import fs from 'fs';
 
 const router: Router = Router();
 
@@ -61,12 +64,43 @@ router.get('/signed-url/:fileName', requireAuth, async (req: Request, res: Respo
   res.status(201).send({ url: url });
 });
 
+function createFilteredImage(id: number, fileName: string): Promise<string> {
+  const getSignedUrl = AWS.getGetSignedUrl(fileName);
+  const { imageFilterApi } = config;
+  const tmpDir = './tmp';
+  if (!fs.existsSync(tmpDir)) {
+    fs.mkdirSync(tmpDir);
+  }
+  const filteredImageFile = `${tmpDir}/filtered.${Math.floor(Math.random() * 2000)}.${fileName}`;
+  const filteredImageStream = fs.createWriteStream(filteredImageFile);
+  return new Promise<string>((resolve, reject) => {
+    const encodedUrl = encodeURIComponent(getSignedUrl);
+    const url = `${imageFilterApi}/filteredimage?image_url=${encodedUrl}`;
+    console.log(`createFilteredImage() id[${id}] start getSignedUrl[${getSignedUrl}] url[${url}]`);
+    http
+      .get(url, res => {
+        res.on('data', chunk => filteredImageStream.write(chunk));
+        res.on('end', () => {
+          console.log(`createFilteredImage() id[${id}] stop file[${filteredImageFile}]`);
+          filteredImageStream.end();
+          resolve(filteredImageFile);
+        });
+      })
+      .on('error', error => {
+        console.log(`createFilteredImage() id[${id}] error[${error}]`);
+        reject(error);
+      });
+  });
+}
+
+let postRequestId = 0;
+
 // Post meta data and the filename after a file is uploaded
 // NOTE the file name is the key name in the s3 bucket.
 // body : {caption: string, fileName: string};
 router.post('/', requireAuth, async (req: Request, res: Response) => {
   const caption = req.body.caption;
-  const fileName = req.body.url;
+  const fileName: string = req.body.url;
 
   // check Caption is valid
   if (!caption) {
@@ -76,6 +110,18 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   // check Filename is valid
   if (!fileName) {
     return res.status(400).send({ message: 'File url is required' });
+  }
+
+  // the code below works because the frontend first upload the picture to S3 before calling this end-point
+  const id = ++postRequestId;
+  console.log(`POST /feed id[${id}] fileName[${fileName}]`);
+  try {
+    const filteredImageFile = await createFilteredImage(id, fileName);
+    await AWS.upload(fileName, fs.createReadStream(filteredImageFile));
+    fs.unlinkSync(filteredImageFile);
+  } catch (error) {
+    console.log(`POST /feed id[${id}] error[${error}]`);
+    return res.status(500).send(`${error}`);
   }
 
   const item = await new FeedItem({

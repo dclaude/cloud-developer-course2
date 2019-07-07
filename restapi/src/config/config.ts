@@ -11,5 +11,6 @@ export const config = {
   awsRegion: process.env.AWS_REGION,
   awsProfile: process.env.AWS_PROFILE,
   awsMediaBucket: process.env.AWS_MEDIA_BUCKET,
-  jwtSecret: process.env.JWT_SECRET
+  jwtSecret: process.env.JWT_SECRET,
+  imageFilterApi: process.env.IMAGE_FILTER_API
 };
