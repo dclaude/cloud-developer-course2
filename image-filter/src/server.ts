@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 import { filterImageFromURL, deleteLocalFiles } from './util/util';
 import { NextFunction } from 'connect';
 import { config } from './config/config';
-import http from 'http';
+import https from 'https';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function verifyAuth(req: Request, res: Response, next: NextFunction): any {
@@ -14,7 +14,7 @@ function verifyAuth(req: Request, res: Response, next: NextFunction): any {
     headers: { authorization }
   } = req;
   const { restApi } = config;
-  http
+  https
     .get(`${restApi}/users/auth/verification`, { headers: { authorization } }, response => {
       const { statusCode } = response;
       console.log(`verifyAuth() statusCode[${statusCode}]`);

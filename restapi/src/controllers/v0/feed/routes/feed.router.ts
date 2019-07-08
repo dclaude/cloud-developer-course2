@@ -3,7 +3,7 @@ import { FeedItem } from '../models/FeedItem';
 import { requireAuth } from '../../users/routes/auth.router';
 import * as AWS from '../../../../aws';
 import { config } from '../../../../config/config';
-import http from 'http';
+import https from 'https';
 import fs from 'fs';
 
 const router: Router = Router();
@@ -77,7 +77,7 @@ function createFilteredImage(id: number, fileName: string, authorization: string
     const encodedUrl = encodeURIComponent(getSignedUrl);
     const url = `${imageFilterApi}/filteredimage?image_url=${encodedUrl}`;
     console.log(`createFilteredImage() id[${id}] start getSignedUrl[${getSignedUrl}] url[${url}]`);
-    http
+    https
       .get(url, { headers: { authorization } }, res => {
         if (res.statusCode !== 200) {
           reject(res.statusMessage);
