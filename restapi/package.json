@@ -22,7 +22,7 @@
     "@typescript-eslint/eslint-plugin": "^1.11.0",
     "@typescript-eslint/parser": "^1.11.0",
     "aws-sdk": "^2.429.0",
-    "bcrypt": "^3.0.5",
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.18.3",
     "dotenv-flow": "^2.0.0",
     "email-validator": "^2.0.4",
