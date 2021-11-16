@@ -21,7 +21,7 @@
     "@types/jsonwebtoken": "^8.3.2",
     "@typescript-eslint/eslint-plugin": "^1.11.0",
     "@typescript-eslint/parser": "^1.11.0",
-    "aws-sdk": "^2.429.0",
+    "aws-sdk": "^2.814.0",
     "bcrypt": "^3.0.5",
     "body-parser": "^1.18.3",
     "dotenv-flow": "^2.0.0",
